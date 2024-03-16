@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/SulfurManager.iml" filepath="$PROJECT_DIR$/SulfurManager.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CustomPaint.iml" filepath="$PROJECT_DIR$/CustomPaint.iml" />
     </modules>
   </component>
 </project>
