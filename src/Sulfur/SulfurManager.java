@@ -74,24 +74,7 @@ public class SulfurManager {
                     continue;
                 }
 
-                int id = Integer.parseInt(tillChar(loop, ":"));
-                loop = fromChar(loop, "|");
-                int belongingStatus = Integer.parseInt(tillChar(loop, "|"));
-                loop = fromChar(loop, "[");
-                int fill = Integer.parseInt(tillChar(loop, "]"));
-                loop = fromChar(loop, ":");
-                int kind = Integer.parseInt(tillChar(loop, ":"));
-                loop = fromChar(loop, ":");
-                ArrayList<Double> data = new ArrayList<>();
-                for (String split : loop.split(",")){
-                    data.add(Double.parseDouble(split));
-                }
-                double[] arr = new double[data.size()];
-                for (int i = 0; i < arr.length; i++){
-                    arr[i] = data.get(i);
-                }
-
-                list.add(new Entry(id, kind,  arr, belongingStatus, fill));
+                list.add(v1translateData(loop));
 
             }
             Entry[] arr = new Entry[list.size()];
@@ -117,6 +100,14 @@ public class SulfurManager {
         int belongingStatus = Integer.parseInt(tillChar(data, "|"));
         data = fromChar(data, "[");
         int fill = Integer.parseInt(tillChar(data, "]"));
+        data = fromChar(data, "(");
+        int r = Integer.parseInt(tillChar(data,","));
+        data = fromChar(data, ",");
+        int g = Integer.parseInt(tillChar(data, ","));
+        data = fromChar(data, ",");
+        int b = Integer.parseInt(tillChar(data, ","));
+        data = fromChar(data, ",");
+        int a = Integer.parseInt(tillChar(data, ")"));
         data = fromChar(data, ":");
         int kind = Integer.parseInt(tillChar(data, ":"));
         data = fromChar(data, ":");
@@ -128,11 +119,11 @@ public class SulfurManager {
         for (int i = 0; i < arr.length; i++){
             arr[i] = values.get(i);
         }
-        return new Entry(id, kind, arr, belongingStatus, fill);
+        return new Entry(id, kind, arr, new Color(r,g,b,a), belongingStatus, fill);
     }
 
 
-    public int v1addData(int kind, double[] data, int fill, int belongingStatus){
+    public int v1addData(int kind, double[] data, Color color, int fill, int belongingStatus){
         String[] old = readLines();
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             for(String str : old){
@@ -152,8 +143,11 @@ public class SulfurManager {
 
             if (fill != Entry.FILL_FALSE && fill != Entry.FILL_TRUE) fill = Entry.FILL_FALSE;
 
-
-            writer.write(id+":"+"|"+belongingStatus+"|"+":"+"["+fill+"]"+":"+kind+":");
+            int r = color.getRed();
+            int g = color.getGreen();
+            int b = color.getBlue();
+            int a = color.getAlpha();
+            writer.write(id+":"+"|"+belongingStatus+"|"+":"+"["+fill+"]"+":("+r+","+g+","+b+","+a+"):"+kind+":");
 
             for (int i = 0; i < data.length; i++){
                 if (i == data.length-1){
@@ -259,8 +253,8 @@ public class SulfurManager {
 * Sulfur.s layout:
 * 1:v1
 * 2:widthxheight
-* id:|belongingStatus|:[fill]:kind:data
-* 4:|-1|:[0]:6:54.5,1.2,45.5
+* id:|belongingStatus|:[fill]:(r,g,b,a):kind:data
+* 4:|-1|:[0]:(100,100,100,255):6:54.5,1.2,45.5
 *
 *
 *

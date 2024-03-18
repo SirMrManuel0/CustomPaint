@@ -6,7 +6,7 @@ import java.awt.*;
 import java.awt.geom.GeneralPath;
 
 public class nCorners extends Shapus{
-    public nCorners(double x, double y, double width, double height, Color col, double c){
+    public nCorners(double x, double y, double width, double height, Color col, double c, int fill){
         int corners = (int) c;
         corners = corners % 360;
         C = col;
@@ -24,7 +24,6 @@ public class nCorners extends Shapus{
         }
         path.closePath();
         S = path;
-        cPoint test = Normal.movePoint(Center);
-        //S = new Ellipse(test.getX()-5, test.getY()-5, 10,10,Color.BLACK).getShape();
+        this.fill = fill;
     }
 }
