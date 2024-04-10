@@ -16,7 +16,7 @@ public class Entry {
     private int key;
     private double[] values;
     private int belongingStatus;
-    private boolean fill;
+    private int fill;
 
     public Entry(int id, int key, double[] values, Color c, int belongingStatus, int fill){
         if (belongingStatus > 2 || belongingStatus < -1){
@@ -27,15 +27,17 @@ public class Entry {
         }
         this.color = c;
         this.belongingStatus = belongingStatus;
-        this.fill = fill == 1;
+        this.fill = fill;
         this.id = id;
         this.key = key;
         this.values = values;
+        this.color = c;
     }
 
-    public boolean getFill(){return fill;}
+    public int getFill(){return fill;}
     public int getBelongingStatus(){return belongingStatus;}
     public int getKey(){return key;}
     public double[] getValues(){return values;}
     public int getId(){return id;}
+    public Color getColor(){return color;}
 }

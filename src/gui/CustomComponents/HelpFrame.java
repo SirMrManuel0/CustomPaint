@@ -25,7 +25,6 @@ public class HelpFrame extends JFrame {
         int x = (int) (parentLocation.getX() + parentDimension.getWidth() / 2 - getWidth() / 2);
         int y = (int) (parentLocation.getY() + parentDimension.getHeight() / 2 - getHeight() / 2);
         setLocation(x,y);
-        setVisible(true);
     }
 
     private void nEck(){

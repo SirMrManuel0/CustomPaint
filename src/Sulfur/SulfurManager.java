@@ -94,6 +94,22 @@ public class SulfurManager {
         return data[id];
     }
 
+    public int v1blankFile(Dimension resolution){
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+
+            writer.write("v1");
+            writer.newLine();
+            writer.write(resolution.getWidth()+"x"+resolution.getHeight());
+
+            writer.flush();
+            return VOID_SUCCESS;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return VOID_ERROR;
+    }
+
     public static Entry v1translateData(String data){
         int id = Integer.parseInt(tillChar(data, ":"));
         data = fromChar(data, "|");

@@ -6,12 +6,19 @@ import java.awt.*;
 import java.awt.geom.GeneralPath;
 
 public class nCorners extends Shapus{
-    public nCorners(double x, double y, double width, double height, Color col, double c, int fill){
+    public nCorners(double x, double y, double diameter, double c, Color col, int fill){
+        val = new double[]{
+                x,
+                y,
+                diameter,
+                c
+        };
+        kind = Shapus.N_CORNER;
         int corners = (int) c;
         corners = corners % 360;
         C = col;
-        cPoint Center = new cPoint(x+(width/2), y+(height/2));
-        Vector2D Normal = new Vector2D(0,  -height/2);
+        cPoint Center = new cPoint(x+(diameter/2), y+(diameter/2));
+        Vector2D Normal = new Vector2D(0,  -diameter/2);
         GeneralPath path = new GeneralPath();
         cPoint Start = Normal.movePoint(Center);
         double Theta = (double) 360 / corners;
@@ -25,5 +32,6 @@ public class nCorners extends Shapus{
         path.closePath();
         S = path;
         this.fill = fill;
+
     }
 }

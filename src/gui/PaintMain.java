@@ -6,8 +6,12 @@ import gui.CustomComponents.*;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 public class PaintMain extends CustomFrame {
 
@@ -25,6 +29,13 @@ public class PaintMain extends CustomFrame {
     private JButton colorButton;
     private updaterPanel colorShow;
     private HelpFrame helpFrame;
+    private JSlider sliderHeight;
+    private JSlider sliderWidth;
+    private JLabel widthLabel;
+    private JLabel heightLabel;
+    private JButton saveButton;
+    private JButton loadButton;
+    private JButton exportButton;
 
     public PaintMain(){
         super(CustomFrame.PHI_HEIGHT, 1.7 , 2, "CustomPaint", false);
@@ -43,7 +54,7 @@ public class PaintMain extends CustomFrame {
         int width = getWidth();
         int height = getHeight();
 
-        int headerHeight = 100;
+        int headerHeight = 130;
         int dPanelHeight = height - headerHeight - 5;
 
         header.setBounds(0,0,width,headerHeight);
@@ -59,9 +70,11 @@ public class PaintMain extends CustomFrame {
         dPanel.setBorder(new CompoundBorder(emptyBorder, BorderFactory.createLineBorder(Color.black, 5)));
 
         JLabel DropDownLabel = new JLabel("'Pinsel'");
-        JLabel widthLabel = new JLabel("Breite");
-        JLabel heightLabel = new JLabel("Höhe");
+        widthLabel = new JLabel("Durchmesser");
+        heightLabel = new JLabel("Höhe");
         cornersLabel = new JLabel("Anzahl Ecken");
+
+        heightLabel.setForeground(Color.gray);
 
         drops = new String[]{
             "Viel Eck",
@@ -79,6 +92,103 @@ public class PaintMain extends CustomFrame {
         helpButton = new JButton("Info");
         colorButton = new JButton("Farbe ändern");
         colorShow = new updaterPanel();
+        sliderHeight = new JSlider(JSlider.HORIZONTAL, 5, dPanelHeight, 100);
+        sliderWidth = new JSlider(JSlider.HORIZONTAL, 5, getWidth(), 100);
+        saveButton = new JButton("Sichern");
+        loadButton = new JButton("Laden");
+        exportButton = new JButton("Exportieren");
+        JButton undoButton = new JButton("Undo");
+        JButton clearButton = new JButton("Leeren");
+
+        saveButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dPanel.save();
+            }
+        });
+
+        loadButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dPanel.load();
+            }
+        });
+
+        exportButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dPanel.export();
+            }
+        });
+
+        clearButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dPanel.clear();
+            }
+        });
+
+        undoButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dPanel.undo();
+            }
+        });
+
+        fillBox.setSelected(true);
+
+        colorChooser.setColor(new Color(26, 112, 143));
+
+        heightField.setEditable(false);
+        sliderHeight.setEnabled(false);
+
+        sliderHeight.setMinorTickSpacing(5);
+        sliderHeight.setMajorTickSpacing(20);
+
+        sliderHeight.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                heightField.setText(String.valueOf(sliderHeight.getValue()));
+            }
+        });
+
+        sliderWidth.setMinorTickSpacing(5);
+        sliderWidth.setMajorTickSpacing(20);
+
+        sliderWidth.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                widthField.setText(String.valueOf(sliderWidth.getValue()));
+            }
+        });
+
+        widthField.addKeyListener(new KeyAdapter() {
+            private String old = "100";
+            @Override
+            public void keyReleased(KeyEvent e) {
+                super.keyReleased(e);
+                if (widthField.getText().equals(old)) return;
+                if (widthField.getText().isEmpty() && widthField.hasFocus()) return;
+                old = widthField.getText();
+                double val = safeParse(widthField.getText(), 100);
+                if (val == 100) widthField.setText("100");
+                sliderWidth.setValue((int) val);
+            }
+        });
+
+        heightField.addKeyListener(new KeyAdapter() {
+            private String old = "100";
+            @Override
+            public void keyReleased(KeyEvent e) {
+                super.keyReleased(e);
+                if (heightField.getText().equals(old)) return;
+                if (heightField.getText().isEmpty() && heightField.hasFocus()) return;
+                old = heightField.getText();
+                double val = safeParse(heightField.getText(), 100);
+                if (val == 100) heightField.setText("100");
+                sliderHeight.setValue((int) val);
+            }
+        });
 
         DropDown.addActionListener(new DropDownActionListener());
         helpButton.addActionListener(new HelpActionListener());
@@ -91,7 +201,14 @@ public class PaintMain extends CustomFrame {
         fillBox.setBounds(120 * 4, 20, 100, 30);
         colorButton.setBounds(120 * 5, 20, 150, 30);
         colorShow.setBounds(120 * 5, 60, 150, 30);
-        helpButton.setBounds(120 * 9, 20, 80, 30);
+        helpButton.setBounds(120 * 8 + 110, 20, 90, 30);
+        undoButton.setBounds(120 * 8 + 110, 60, 90, 30);
+        clearButton.setBounds(120 * 8 + 110, 100, 90, 30);
+        sliderHeight.setBounds(120*2, 60, 100, 30);
+        sliderWidth.setBounds(120, 60, 100, 30);
+        saveButton.setBounds(120 * 7, 20, 120, 30);
+        loadButton.setBounds(120 * 7, 60, 120, 30);
+        exportButton.setBounds(120 * 7, 100, 120, 30);
 
         Font f = DropDownLabel.getFont();
         FontMetrics Metrics = DropDownLabel.getFontMetrics(f);
@@ -104,11 +221,11 @@ public class PaintMain extends CustomFrame {
 
         textWidth = Metrics.stringWidth(widthLabel.getText());
         x = (120 * 1) + 50 - textWidth / 2;
-        widthLabel.setBounds(x, 60, 100, 30);
+        widthLabel.setBounds(x, 90, 100, 30);
 
         textWidth = Metrics.stringWidth(heightLabel.getText());
         x = (120 * 2) + 50 - textWidth / 2;
-        heightLabel.setBounds(x, 60, 100, 30);
+        heightLabel.setBounds(x, 90, 100, 30);
 
         textWidth = Metrics.stringWidth(cornersLabel.getText());
         x = (120 * 3) + 50 - textWidth / 2;
@@ -119,15 +236,23 @@ public class PaintMain extends CustomFrame {
         header.add(heightField);
         header.add(cornerField);
         header.add(fillBox);
+
         header.add(colorButton);
         header.add(colorShow);
         header.add(helpButton);
+        header.add(sliderHeight);
+        header.add(sliderWidth);
 
+        header.add(undoButton);
         header.add(DropDownLabel);
         header.add(widthLabel);
         header.add(heightLabel);
         header.add(cornersLabel);
 
+        header.add(saveButton);
+        header.add(loadButton);
+        header.add(exportButton);
+        header.add(clearButton);
 
         add(header);
         add(dPanel);
@@ -156,14 +281,26 @@ public class PaintMain extends CustomFrame {
         public void actionPerformed(ActionEvent e) {
             JComboBox<String> source = (JComboBox<String>) e.getSource();
             int index = source.getSelectedIndex();
+            if (index <= 1) helpFrame = new HelpFrame("Info", PaintMain.this);
             if (index <= 1) helpFrame.switcher();
             if (index != 0){
+                sliderHeight.setEnabled(true);
                 cornerField.setEditable(false);
                 cornersLabel.setForeground(Color.gray);
+                heightField.setEditable(true);
+                widthLabel.setText("Breite");
+                heightLabel.setForeground(Color.black);
             } else {
                 cornerField.setEditable(true);
+                heightField.setEditable(false);
+                widthLabel.setText("Durchmesser");
+                heightLabel.setForeground(Color.gray);
                 cornersLabel.setForeground(Color.black);
             }
+            FontMetrics Metrics = widthLabel.getFontMetrics(widthLabel.getFont());
+            int textWidth = Metrics.stringWidth(widthLabel.getText());
+            int x = (120 * 1) + 50 - textWidth / 2;
+            widthLabel.setBounds(x, 90, 100, 30);
 
         }
     }
@@ -189,7 +326,13 @@ public class PaintMain extends CustomFrame {
             if (fillBox.isSelected()) fill = Entry.FILL_TRUE;
             switch (DropDown.getSelectedIndex()){
                 case 0:
-                    dPanel.drawNCorners(x, y, width, height, corners, fill, color);
+                    x += width / 2;
+                    y += height / 2;
+
+                    x -= width / 2;
+                    y -= width / 2;
+
+                    dPanel.drawNCorners(x, y, width, corners, fill, color);
                     break;
                 case 1:
                     Brush = new Timer(1, new TimerActionListener(width, height, fill, color));
@@ -214,6 +357,7 @@ public class PaintMain extends CustomFrame {
             int fill = Entry.FILL_FALSE;
             Color color = Color.black;
             if (colorChooser.getColor() != null) color = colorChooser.getColor();
+            if (fillBox.isSelected()) fill = Entry.FILL_TRUE;
 
             x = (int) (x - width / 2);
             y = (int) (y - height / 2);
@@ -286,7 +430,8 @@ public class PaintMain extends CustomFrame {
     class HelpActionListener extends WindowAdapter implements ActionListener{
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (getDropDownIndex() <= 1) helpFrame = new HelpFrame("Info", PaintMain.this);
+            if (helpFrame == null) helpFrame = new HelpFrame("Info", PaintMain.this);
+            if (getDropDownIndex() <= 1) helpFrame.setVisible(true);
         }
     }
 }
