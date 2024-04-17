@@ -21,6 +21,11 @@ public class cPoint {
     public double[] toArray(){
         return new double[]{x,y};
     }
+    public Point toPoint(){
+        Point p = new Point();
+        p.setLocation(x, y);
+        return p;
+    }
     public void setX(double x) {
         this.x = x;
     }

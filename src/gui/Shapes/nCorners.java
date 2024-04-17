@@ -6,6 +6,8 @@ import java.awt.*;
 import java.awt.geom.GeneralPath;
 
 public class nCorners extends Shapus{
+    private GeneralPath path;
+
     public nCorners(double x, double y, double diameter, double c, Color col, int fill){
         val = new double[]{
                 x,
@@ -13,13 +15,19 @@ public class nCorners extends Shapus{
                 diameter,
                 c
         };
+        C = col;
         kind = Shapus.N_CORNER;
         int corners = (int) c;
+        calcPath(x, y, diameter, corners);
+        this.fill = fill;
+
+    }
+
+    private void calcPath(double x, double y, double diameter, int corners){
         corners = corners % 360;
-        C = col;
         cPoint Center = new cPoint(x+(diameter/2), y+(diameter/2));
         Vector2D Normal = new Vector2D(0,  -diameter/2);
-        GeneralPath path = new GeneralPath();
+        path = new GeneralPath();
         cPoint Start = Normal.movePoint(Center);
         double Theta = (double) 360 / corners;
         if (corners % 2 == 0) Start = Normal.rotate(Theta/2).movePoint(Center);
@@ -31,7 +39,33 @@ public class nCorners extends Shapus{
         }
         path.closePath();
         S = path;
-        this.fill = fill;
+        double c = (double) corners;
+        val = new double[]{
+                x,
+                y,
+                diameter,
+                c
+        };
+    }
 
+    @Override
+    public void setWidth(double width){
+        calcPath(val[0], val[1], width, (int) val[3]);
+    }
+
+    @Override
+    public void setHeight(double height){
+        int corner = (int) height;
+        calcPath(val[0], val[1], val[2], corner);
+    }
+
+    @Override
+    public boolean contains(Point mouseP) {
+        return contains(new cPoint(mouseP.x, mouseP.y - 148));
+    }
+
+    @Override
+    public boolean contains(cPoint point) {
+        return path.contains(point.toPoint());
     }
 }

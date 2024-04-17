@@ -2,18 +2,21 @@ package gui;
 
 import Sulfur.Entry;
 import gui.CustomComponents.*;
+import gui.Shapes.Geometry.cPoint;
+import gui.Shapes.Shapus;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 
-public class PaintMain extends CustomFrame {
+public class PaintMain extends CustomFrame implements ObsAuswahl {
 
     private JPanel header;
     private drawPanel dPanel;
@@ -36,11 +39,17 @@ public class PaintMain extends CustomFrame {
     private JButton saveButton;
     private JButton loadButton;
     private JButton exportButton;
+    private AuswahlTool auswahlTool;
+    private MovementListener MovListener;
+    private JButton deleteButton;
+    private ArrayList<ObsPaintMain> Observer;
 
     public PaintMain(){
         super(CustomFrame.PHI_HEIGHT, 1.7 , 2, "CustomPaint", false);
         setSize(new Dimension(1188, 734));
         addMouseListener(new BrushMouseListener());
+        MovListener = new MovementListener();
+        addMouseMotionListener(MovListener);
         setLayout(null);
         initComponents();
         setVisible(true);
@@ -49,6 +58,12 @@ public class PaintMain extends CustomFrame {
     private void initComponents(){
         header = new JPanel();
         dPanel = new drawPanel();
+        auswahlTool = new AuswahlTool();
+        deleteButton = new JButton("Löschen");
+        Observer = new ArrayList<>();
+
+        deleteButton.setEnabled(false);
+        deleteButton.addActionListener(auswahlTool);
         header.setLayout(null);
 
         int width = getWidth();
@@ -59,6 +74,12 @@ public class PaintMain extends CustomFrame {
 
         header.setBounds(0,0,width,headerHeight);
         dPanel.setBounds(-5,headerHeight+5,width,dPanelHeight);
+
+        auswahlTool.setDrawPanel(dPanel);
+
+        addObs(auswahlTool);
+        auswahlTool.addObs(this);
+        dPanel.addObs(auswahlTool);
 
         Border emptyBorder = BorderFactory.createEmptyBorder(
                 dPanel.getPreferredSize().height,  // top
@@ -77,10 +98,11 @@ public class PaintMain extends CustomFrame {
         heightLabel.setForeground(Color.gray);
 
         drops = new String[]{
-            "Viel Eck",
-            "Pinsel",
-            "Kreis",
-            "Rechteck"
+                "Viel Eck",
+                "Pinsel",
+                "Kreis",
+                "Rechteck",
+                "Auswahltool"
         };
 
         widthField = new JTextField("100");
@@ -99,6 +121,8 @@ public class PaintMain extends CustomFrame {
         exportButton = new JButton("Exportieren");
         JButton undoButton = new JButton("Undo");
         JButton clearButton = new JButton("Leeren");
+
+        colorShow.addObs(auswahlTool);
 
         saveButton.addActionListener(new ActionListener() {
             @Override
@@ -132,6 +156,84 @@ public class PaintMain extends CustomFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 dPanel.undo();
+            }
+        });
+
+        DropDown.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (DropDown.getSelectedIndex() == 4) {
+                    MovListener.setAuswahlStatus(true);
+                } else {
+                    MovListener.setAuswahlStatus(false);
+                }
+            }
+        });
+
+        widthField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                changed();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                changed();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                changed();
+            }
+            public void changed(){
+                for (ObsPaintMain O : Observer) O.width(safeParse(widthField.getText(), 100));
+            }
+        });
+
+        heightField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                changed();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                changed();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                changed();
+            }
+            public void changed(){
+                for (ObsPaintMain O : Observer) O.height(safeParse(heightField.getText(), 100));
+            }
+        });
+
+        heightField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                changed();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                changed();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                changed();
+            }
+            public void changed(){
+                for (ObsPaintMain O : Observer) O.corners((int) safeParse(cornerField.getText(), 3));
+            }
+        });
+
+        fillBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                for (ObsPaintMain O : Observer) O.fill(fillBox.isSelected());
             }
         });
 
@@ -199,6 +301,7 @@ public class PaintMain extends CustomFrame {
         heightField.setBounds(120 * 2, 20, 100, 30);
         cornerField.setBounds(120 * 3, 20, 100, 30);
         fillBox.setBounds(120 * 4, 20, 100, 30);
+        deleteButton.setBounds(120 * 4, 60, 100, 30);
         colorButton.setBounds(120 * 5, 20, 150, 30);
         colorShow.setBounds(120 * 5, 60, 150, 30);
         helpButton.setBounds(120 * 8 + 110, 20, 90, 30);
@@ -253,10 +356,13 @@ public class PaintMain extends CustomFrame {
         header.add(loadButton);
         header.add(exportButton);
         header.add(clearButton);
+        header.add(deleteButton);
 
         add(header);
         add(dPanel);
     }
+
+    private void addObs(ObsPaintMain Observ) { Observer.add(Observ); }
 
     public int getDropDownIndex(){return DropDown.getSelectedIndex();}
 
@@ -273,6 +379,60 @@ public class PaintMain extends CustomFrame {
         } catch (NumberFormatException ex) {
             return normal;
         }
+    }
+
+    @Override
+    public void selected(Shapus selectedShapus) {
+        int kind = selectedShapus.getKind();
+        if (kind == Shapus.N_CORNER || kind == Shapus.CIRCLE_WITH_B_STATUS)
+            helpFrame = new HelpFrame("Info", PaintMain.this);
+        if (kind == Shapus.N_CORNER || kind == Shapus.CIRCLE_WITH_B_STATUS)
+            helpFrame.switcher();
+        if (kind != Shapus.N_CORNER){
+            sliderHeight.setEnabled(true);
+            cornerField.setEditable(false);
+            cornersLabel.setForeground(Color.gray);
+            heightField.setEditable(true);
+            widthLabel.setText("Breite");
+            heightLabel.setForeground(Color.black);
+
+            heightField.setText(String.valueOf(selectedShapus.getVal()[3]).replace(".",","));
+            sliderHeight.setValue((int) selectedShapus.getVal()[3]);
+
+            widthField.setText(String.valueOf(selectedShapus.getVal()[2]).replace(".",","));
+            sliderWidth.setValue((int) selectedShapus.getVal()[2]);
+
+            colorChooser.setColor(selectedShapus.getColor());
+            colorShow.update(selectedShapus.getColor());
+
+            fillBox.setSelected(selectedShapus.getFill());
+        } else {
+            cornerField.setEditable(true);
+            heightField.setEditable(false);
+            widthLabel.setText("Durchmesser");
+            heightLabel.setForeground(Color.gray);
+            cornersLabel.setForeground(Color.black);
+
+            cornerField.setText(String.valueOf((int) selectedShapus.getVal()[3]));
+
+            widthField.setText(String.valueOf(selectedShapus.getVal()[2]).replace(".",","));
+            sliderWidth.setValue((int) selectedShapus.getVal()[2]);
+
+            colorChooser.setColor(selectedShapus.getColor());
+            colorShow.update(selectedShapus.getColor());
+
+            fillBox.setSelected(selectedShapus.getFill());
+        }
+        FontMetrics Metrics = widthLabel.getFontMetrics(widthLabel.getFont());
+        int textWidth = Metrics.stringWidth(widthLabel.getText());
+        int x = (120 * 1) + 50 - textWidth / 2;
+        widthLabel.setBounds(x, 90, 100, 30);
+        deleteButton.setEnabled(true);
+    }
+
+    @Override
+    public void deleted() {
+        deleteButton.setEnabled(false);
     }
 
     class DropDownActionListener implements ActionListener{
@@ -306,7 +466,6 @@ public class PaintMain extends CustomFrame {
     }
 
     class BrushMouseListener extends MouseAdapter{
-        Timer Brush;
 
         @Override
         public void mousePressed(MouseEvent e) {
@@ -326,24 +485,25 @@ public class PaintMain extends CustomFrame {
             if (fillBox.isSelected()) fill = Entry.FILL_TRUE;
             switch (DropDown.getSelectedIndex()){
                 case 0:
-                    x += width / 2;
                     y += height / 2;
-
-                    x -= width / 2;
                     y -= width / 2;
 
                     dPanel.drawNCorners(x, y, width, corners, fill, color);
                     break;
                 case 1:
-                    Brush = new Timer(1, new TimerActionListener(width, height, fill, color));
                     dPanel.drawCircle(x,y,width,height,fill,color,Entry.BELONGING_START);
-                    Brush.start();
+                    MovListener.pinsel(width,height,fill,color);
+                    MovListener.setPinselStatus(true);
                     break;
                 case 2:
                     dPanel.drawCircle(x,y,width,height,fill,color);
                     break;
                 case 3:
                     dPanel.drawRectangle(x,y,width,height,fill,color);
+                    break;
+                case 4:
+                    auswahlTool.clicked(new cPoint(e.getX(),e.getY() - 148));
+                    break;
             }
         }
 
@@ -365,40 +525,45 @@ public class PaintMain extends CustomFrame {
 
             if (DropDown.getSelectedIndex() == 1) {
                 dPanel.drawCircle(x, y, width, height, fill, color, Entry.BELONGING_END);
-                if (Brush != null) Brush.stop();
+                MovListener.setPinselStatus(false);
             }
         }
     }
 
-    class TimerActionListener implements ActionListener{
+    class MovementListener extends MouseMotionAdapter{
+        private double pinselWidth;
+        private double pinselHeight;
+        private int pinselFill;
+        private Color pinselColor;
+        private boolean pinselStatus = false;
+        private boolean auswahlStatus = false;
 
-        private double width;
-        private double height;
-        private int fill;
-        private Color color;
+        @Override
+        public void mouseDragged(MouseEvent e){
+            double x = e.getX();
+            double y = e.getY() - 148;
 
-        TimerActionListener(double width, double height, int fill, Color color){
-            this.color = color;
-            this.fill = fill;
-            this.width = width;
-            this.height = height;
+            if (pinselStatus) {
+                x -= pinselWidth / 2;
+                y -= pinselHeight / 2;
+                dPanel.drawCircle(x,y, pinselWidth, pinselHeight, pinselFill, pinselColor, Entry.BELONGING_MIDDLE);
+            }
         }
 
         @Override
-        public void actionPerformed(ActionEvent e) {
-            Point mouseLocation = MouseInfo.getPointerInfo().getLocation();
-            SwingUtilities.convertPointFromScreen(mouseLocation, PaintMain.this);
-            int x = (int) mouseLocation.getX();
-            int y = (int) mouseLocation.getY();
-            y -= 148;
-            if (y < 0) y = 148;
-            x = (int) (x - width / 2);
-            y = (int) (y - height / 2);
-
-            dPanel.drawCircle(x,y,width,height,fill,color,Entry.BELONGING_MIDDLE);
-
-
+        public void mouseMoved(MouseEvent e) {
+            if (auswahlStatus) auswahlTool.hover(new cPoint(e.getX(), e.getY() - 148));
         }
+
+        public void pinsel(double width, double height, int fill, Color color) {
+            pinselWidth = width;
+            pinselHeight = height;
+            pinselFill = fill;
+            pinselColor = color;
+        }
+
+        public void setPinselStatus(boolean status) { pinselStatus = status; }
+        public void setAuswahlStatus(boolean status) { auswahlStatus = status; }
     }
 
     class ColorActionListener extends WindowAdapter implements ActionListener{

@@ -15,9 +15,15 @@ import java.util.ArrayList;
 
 public class drawPanel extends JPanel {
     private ArrayList<Shapus> Memory;
+    private ArrayList<Shapus> hoverShapus;
+    private ArrayList<Shapus> selectedShapus;
+    private ArrayList<ObsDPanel> Observer;
 
     public drawPanel(){
         Memory = new ArrayList<>();
+        hoverShapus = new ArrayList<>();
+        selectedShapus = new ArrayList<>();
+        Observer = new ArrayList<>();
     }
 
     public void drawRectangle(double x, double y, double width, double height, int fill, Color color){
@@ -61,18 +67,21 @@ public class drawPanel extends JPanel {
     }
 
     public void undo(){
-        if (Memory.size() == 0) return;
+        if (Memory.isEmpty()) return;
         Shapus S = Memory.remove(Memory.size()-1);
         while (S.getbStatus() != Entry.BELONGING_NONE) {
-            if (Memory.size() == 0) break;
+            if (Memory.isEmpty()) break;
             S = Memory.remove(Memory.size()-1);
             if (S.getbStatus() == Entry.BELONGING_START) break;
         }
+        for (ObsDPanel O : Observer) O.undo();
         repaint();
     }
 
     public void clear(){
         Memory = new ArrayList<>();
+        hoverShapus = new ArrayList<>();
+        selectedShapus = new ArrayList<>();
         repaint();
     }
 
@@ -154,6 +163,16 @@ public class drawPanel extends JPanel {
         }
     }
 
+    public ArrayList<Shapus> getMemory(){ return Memory; }
+    public Shapus getMemory(int index) { return Memory.get(index); }
+    public void updateMemory(ArrayList<Shapus> Memo) { Memory = Memo; repaint(); }
+    public void drawHover(ArrayList<Shapus> s) { hoverShapus = s; repaint();}
+    public void drawSelected(ArrayList<Shapus> s) { selectedShapus = s; repaint();}
+    public void clearHover() { hoverShapus = new ArrayList<>(); repaint();}
+    public void clearSelected() { selectedShapus = new ArrayList<>(); repaint();}
+    public void addObs(ObsDPanel observ){ Observer.add(observ); }
+    public void deleteMemory(int index) { Memory.remove(index); repaint(); }
+
     @Override
     public void paintComponent(Graphics g){
         super.paintComponent(g);
@@ -162,6 +181,17 @@ public class drawPanel extends JPanel {
             g2D.setColor(S.getColor());
             g2D.draw(S.getShape());
             if (S.getFill()) g2D.fill(S.getShape());
+        }
+        for (Shapus S : hoverShapus){
+            g2D.setColor(S.getColor());
+            g2D.setStroke(new BasicStroke(5));
+            g2D.draw(S.getShape());
+        }
+
+        for (Shapus S : selectedShapus){
+            g2D.setColor(S.getColor());
+            g2D.setStroke(new BasicStroke(5));
+            g2D.draw(S.getShape());
         }
     }
 }
