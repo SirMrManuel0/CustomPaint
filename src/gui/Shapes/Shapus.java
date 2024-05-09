@@ -21,6 +21,7 @@ public class Shapus {
 
     public void setWidth(double width){}
     public void setHeight(double height){}
+    public void setCorner(int corners) {}
     public void setFill(boolean fill){
         if (fill) this.fill = Entry.FILL_TRUE;
         if (!fill) this.fill = Entry.FILL_FALSE;
@@ -41,4 +42,5 @@ public class Shapus {
     public int getKind(){return kind;}
     public boolean contains(Point mouseP) {return false;}
     public boolean contains(cPoint point) {return false;}
+    public cPoint getCenter() { return new cPoint(0,0); };
 }

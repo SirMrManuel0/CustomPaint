@@ -7,6 +7,7 @@ import java.awt.geom.GeneralPath;
 
 public class nCorners extends Shapus{
     private GeneralPath path;
+    private cPoint Center;
 
     public nCorners(double x, double y, double diameter, double c, Color col, int fill){
         val = new double[]{
@@ -18,45 +19,72 @@ public class nCorners extends Shapus{
         C = col;
         kind = Shapus.N_CORNER;
         int corners = (int) c;
-        calcPath(x, y, diameter, corners);
+        Center = new cPoint(x+(diameter/2), y+(diameter/2));
+        calcPath(diameter, corners);
         this.fill = fill;
-
-    }
-
-    private void calcPath(double x, double y, double diameter, int corners){
-        corners = corners % 360;
-        cPoint Center = new cPoint(x+(diameter/2), y+(diameter/2));
-        Vector2D Normal = new Vector2D(0,  -diameter/2);
-        path = new GeneralPath();
-        cPoint Start = Normal.movePoint(Center);
-        double Theta = (double) 360 / corners;
-        if (corners % 2 == 0) Start = Normal.rotate(Theta/2).movePoint(Center);
-        Vector2D StartVec = Start.vector(Center);
-        path.moveTo(Start.getX(), Start.getY());
-        for (int i = 1; i <= corners; i++){
-            cPoint P = StartVec.rotate(Theta*i).movePoint(Center);
-            path.lineTo(P.getX(), P.getY());
-        }
-        path.closePath();
-        S = path;
-        double c = (double) corners;
         val = new double[]{
                 x,
                 y,
                 diameter,
                 c
         };
+
     }
 
+    public nCorners(cPoint Center, double diameter, double c, Color col, int fill){
+        val = new double[]{
+                0,
+                0,
+                diameter,
+                c
+        };
+        C = col;
+        kind = Shapus.N_CORNER;
+        int corners = (int) c;
+        this.Center = Center;
+        calcPath(diameter, corners);
+        this.fill = fill;
+
+    }
+
+
+    private void calcPath(double diameter, int corners){
+        corners = corners % 360;
+        Vector2D Normal = new Vector2D(0,  -diameter/2);
+        path = new GeneralPath();
+        cPoint Start = Normal.movePoint(Center);
+        double Theta = (double) 360 / corners;
+        if (corners % 2 == 0) Start = Normal.rotate(Theta/2).movePoint(Center);
+        Vector2D StartVec = Center.vector(Start);
+        path.moveTo(Start.getX(), Start.getY());
+        for (int i = 1; i <= corners; i++){
+            cPoint P = StartVec.rotate(Theta*i).movePoint(Center);
+            path.lineTo(P.getX(), P.getY());
+        }
+        path.closePath();
+        this.S = path;        
+        val = new double[]{
+                val[0],
+                val[1],
+                diameter,
+                corners
+        };
+    }
+    
+    @Override
+    public cPoint getCenter() {
+    	return Center;
+    }
+    
     @Override
     public void setWidth(double width){
-        calcPath(val[0], val[1], width, (int) val[3]);
+    	if(width == val[2]) return;
+        calcPath(width, (int) val[3]);
     }
 
     @Override
-    public void setHeight(double height){
-        int corner = (int) height;
-        calcPath(val[0], val[1], val[2], corner);
+    public void setCorner(int corners){
+        calcPath(val[2], corners);
     }
 
     @Override

@@ -163,9 +163,15 @@ public class drawPanel extends JPanel {
         }
     }
 
+    public void addAt(Shapus shape, int index){ Memory.add(index, shape); }
+    public boolean outOfRange(int index){ return index >= Memory.size(); }
+
     public ArrayList<Shapus> getMemory(){ return Memory; }
     public Shapus getMemory(int index) { return Memory.get(index); }
-    public void updateMemory(ArrayList<Shapus> Memo) { Memory = Memo; repaint(); }
+    public void updateMemory(ArrayList<Shapus> Memo) {
+    	Memory = Memo; 
+    	repaint();
+    }
     public void drawHover(ArrayList<Shapus> s) { hoverShapus = s; repaint();}
     public void drawSelected(ArrayList<Shapus> s) { selectedShapus = s; repaint();}
     public void clearHover() { hoverShapus = new ArrayList<>(); repaint();}

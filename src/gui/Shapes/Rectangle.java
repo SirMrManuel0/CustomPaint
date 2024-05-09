@@ -27,7 +27,8 @@ public class Rectangle extends Shapus{
 
     @Override
     public void setWidth(double width) {
-        double x = val[0];
+    	if (width == val[2]) return;
+        double x = val[0] - (width - val[2]) / 2;
         double y = val[1];
         double height = val[3];
         S = new Rectangle2D.Double(x, y, width, height);
@@ -37,12 +38,19 @@ public class Rectangle extends Shapus{
                 new cPoint(x+width,y+height),
                 new cPoint(x,y+height)
         };
+        val = new double[]{
+                x,
+                y,
+                width,
+                height
+        };
     }
 
     @Override
     public void setHeight(double height) {
+    	if (height == val[3]) return;
         double x = val[0];
-        double y = val[1];
+        double y = val[1] - (height - val[3]) / 2;
         double width = val[2];
         S = new Rectangle2D.Double(x, y, width, height);
         this.Corners = new cPoint[] {
@@ -50,6 +58,12 @@ public class Rectangle extends Shapus{
                 new cPoint(x+width,y),
                 new cPoint(x+width,y+height),
                 new cPoint(x,y+height)
+        };
+        val = new double[]{
+                x,
+                y,
+                width,
+                height
         };
     }
 

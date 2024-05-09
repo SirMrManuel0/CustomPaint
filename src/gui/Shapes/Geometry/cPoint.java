@@ -11,10 +11,10 @@ public class cPoint {
         this.y = y;
     }
 
-    public Vector2D vector(cPoint P){
+    public Vector2D vector(cPoint T){
         // PT = T - P
-        double _x = x - P.getX();
-        double _y = y - P.getY();
+        double _x = T.getX() - x;
+        double _y = T.getY() - y;
         return new Vector2D(_x, _y);
     }
 

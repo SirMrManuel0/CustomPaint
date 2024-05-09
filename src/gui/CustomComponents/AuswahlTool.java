@@ -1,6 +1,7 @@
 package gui.CustomComponents;
 
 import gui.Shapes.*;
+import gui.Shapes.Geometry.Vector2D;
 import gui.Shapes.Geometry.cPoint;
 import Sulfur.Entry;
 import gui.Shapes.Rectangle;
@@ -18,14 +19,125 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
     private cPoint LocationPoint;
     private drawPanel dPanel;
     private ArrayList<ObsAuswahl> Observer;
-    private int pastIndex = -1;
-    private boolean hasSelected = false;
-    private int selectedIndex = -1;
+    private int pastIndex;
+    private boolean hasSelected;
+    private int selectedIndex;
     private ArrayList<Integer> selectedIndexes;
+    private boolean isDragging;
+    private cPoint dragStart;
+    private Vector2D moveEnd;
+    private boolean[] suppress;
 
     public AuswahlTool(){
+        pastIndex = -1;
+        selectedIndex = -1;
+        hasSelected = false;
+        isDragging = false;
+        suppress = new boolean[]{ false, false, false, false, false };
+        dragStart = new cPoint(0,0);
+        moveEnd = new Vector2D(0,0);
         Observer = new ArrayList<>();
         selectedIndexes = new ArrayList<>();
+    }
+
+    public void setDragStart(cPoint p) {dragStart = p;}
+
+    public void drag(cPoint newLoc){
+        if (!hasSelected) return;
+        if (isDragging){
+            deleteDragTransp();
+        }
+        isDragging = true;
+        Shapus element = dPanel.getMemory(selectedIndex);
+        double val[] = element.getVal();
+        Vector2D move = dragStart.vector(newLoc);
+        moveEnd = moveEnd.add(move);
+        dragStart = newLoc;
+        switch (element.getKind()) {
+            case Shapus.CIRCLE:
+            case Shapus.RECTANGLE:
+            case Shapus.N_CORNER:
+                cPoint loc = new cPoint(val[0], val[1]);
+                double x = moveEnd.movePoint(loc).getX();
+                double y = moveEnd.movePoint(loc).getY();
+                Color elemCol = element.getColor();
+                Color col = new Color(elemCol.getRed(), elemCol.getGreen(), elemCol.getBlue(), 50);
+                Shapus dragging = new Ellipse(0,0,0,0, Color.RED, 0);
+                if (element.getKind() == Shapus.N_CORNER)
+                    dragging = new nCorners(x, y, val[2], val[3], col,element.getFillStatus());
+                else if (element.getKind() == Shapus.CIRCLE)
+                    dragging = new Ellipse(x, y, val[2], val[3], col, element.getFillStatus());
+                else if (element.getKind() == Shapus.RECTANGLE)
+                    dragging = new Rectangle(x, y, val[2], val[3], col, element.getFillStatus());
+                dPanel.addAt(dragging, selectedIndex+1);
+                break;
+            case Shapus.CIRCLE_WITH_B_STATUS:
+                ArrayList<Integer> intShapes = selectAllBStatus(element, selectedIndex, false);
+                ArrayList<Shapus> shapusShapes = selectAllBStatus(element, selectedIndex,true);
+                shapusShapes = reverseShapus(shapusShapes);
+                int addAt = largest(intShapes) + 1;
+                for (Shapus s : shapusShapes){
+                    double[] values = s.getVal();
+                    cPoint loc_b = new cPoint(values[0], values[1]);
+                    double x_b = moveEnd.movePoint(loc_b).getX();
+                    double y_b = moveEnd.movePoint(loc_b).getY();
+                    Color elemCol_b = s.getColor();
+                    Color col_b = new Color(elemCol_b.getRed(), elemCol_b.getGreen(), elemCol_b.getBlue(), 50);
+                    int bStatus = s.getbStatus();
+                    Shapus shape = new Ellipse(x_b, y_b, values[2], values[3], col_b, element.getFillStatus(), bStatus);
+                    dPanel.addAt(shape, addAt);
+                }
+                break;
+        }
+    }
+
+    public void release(cPoint end){
+        if (!isDragging) return;
+        deleteDragTransp();
+        Shapus element = dPanel.getMemory(selectedIndex);
+        double val[] = element.getVal();
+        switch (element.getKind()) {
+            case Shapus.CIRCLE:
+            case Shapus.RECTANGLE:
+            case Shapus.N_CORNER:
+                cPoint loc = new cPoint(val[0], val[1]);
+                double x = moveEnd.movePoint(loc).getX();
+                double y = moveEnd.movePoint(loc).getY();
+                Color elemCol = element.getColor();
+                Shapus dragging = new Ellipse(0,0,0,0, Color.RED, 0);
+                if (element.getKind() == Shapus.N_CORNER)
+                    dragging = new nCorners(x, y, val[2], val[3], elemCol,element.getFillStatus());
+                else if (element.getKind() == Shapus.CIRCLE)
+                    dragging = new Ellipse(x, y, val[2], val[3], elemCol, element.getFillStatus());
+                else if (element.getKind() == Shapus.RECTANGLE)
+                    dragging = new Rectangle(x, y, val[2], val[3], elemCol, element.getFillStatus());
+                dPanel.deleteMemory(selectedIndex);
+                dPanel.addAt(dragging, selectedIndex);
+                break;
+            case Shapus.CIRCLE_WITH_B_STATUS:
+                ArrayList<Integer> intShapes = selectAllBStatus(element, selectedIndex, false);
+                ArrayList<Shapus> shapusShapes = selectAllBStatus(element, selectedIndex,true);
+                shapusShapes = reverseShapus(shapusShapes);
+                int minIndex = smallest(intShapes);
+                for (int i : intShapes){
+                    dPanel.deleteMemory(minIndex);
+                }
+                for (Shapus s : shapusShapes){
+                    double[] values = s.getVal();
+                    cPoint loc_b = new cPoint(values[0], values[1]);
+                    double x_b = moveEnd.movePoint(loc_b).getX();
+                    double y_b = moveEnd.movePoint(loc_b).getY();
+                    Color elemCol_b = s.getColor();
+                    int bStatus = s.getbStatus();
+                    Shapus shape = new Ellipse(x_b, y_b, values[2], values[3], elemCol_b, element.getFillStatus(), bStatus);
+                    dPanel.addAt(shape, minIndex);
+                }
+                break;
+        }
+        moveEnd = new Vector2D(0,0);
+        dragStart = new cPoint(0,0);
+        isDragging = false;
+        clicked(end);
     }
 
     public void clicked(cPoint locationPoint){
@@ -34,14 +146,16 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
         if (index == -1) {
             hasSelected = false;
             selectedIndex = -1;
+            selectedIndexes = new ArrayList<>();
             dPanel.clearSelected();
             return;
         }
+        suppress = new boolean[]{ true, true, true, true, true };
         hasSelected = true;
         selectedIndex = index;
         ArrayList<Integer> selectedElements = new ArrayList<>();
         Shapus element = dPanel.getMemory(index);
-        switch (element.getKind()){
+        switch (element.getKind()) {
             case Shapus.CIRCLE:
             case Shapus.RECTANGLE:
             case Shapus.N_CORNER:
@@ -51,11 +165,9 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
                 selectedElements = (ArrayList<Integer>) selectAllBStatus(element, index, false);
                 break;
         }
-        createSelectedOutline(selectedElements);
         for (ObsAuswahl O : Observer) O.selected(element);
         selectedIndexes = selectedElements;
-
-
+        createSelectedOutline(selectedElements);
     }
 
     public void hover(cPoint hoverPoint){
@@ -111,7 +223,74 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
         }
     }
 
+    public void clear(){
+        selectedIndexes = new ArrayList<>();
+        selectedIndex = -1;
+        hasSelected = false;
+        dPanel.clearHover();
+        dPanel.clearSelected();
+    }
+
     // private helper functions
+    private void deleteDragTransp(){
+        Shapus element = dPanel.getMemory(selectedIndex);
+        if (dPanel.outOfRange(selectedIndex+1)) return;
+        switch (element.getKind()) {
+            case Shapus.CIRCLE:
+            case Shapus.RECTANGLE:
+            case Shapus.N_CORNER:
+                dPanel.deleteMemory(selectedIndex+1);
+                break;
+            case Shapus.CIRCLE_WITH_B_STATUS:
+                ArrayList<Integer> indexes = selectAllBStatus(element, selectedIndex, false);
+                int after = largest(indexes) + 1;
+                if (after < 0) throw new IllegalArgumentException("Nothing has benn dragged yet!");
+                ArrayList<Integer> transPIndexes = selectAllBStatus(dPanel.getMemory(after), after, false);
+                int sm = smallest(transPIndexes);
+                for (int i : transPIndexes){
+                    dPanel.deleteMemory(sm);
+                }
+                break;
+        }
+    }
+
+    private int largest(ArrayList<Integer> list){
+        if (list.isEmpty()) {
+            throw new IllegalArgumentException("List cannot be empty");
+        }
+
+        int largest = Integer.MIN_VALUE; // Initialize with the smallest possible value
+        int size = list.size();
+
+        for (int i = 0; i < size / 2; i++){
+            int j = size - 1 - i;
+            int a = list.get(i);
+            int b = list.get(j);
+            largest = Math.max(largest, Math.max(a, b));
+        }
+
+        return largest;
+    }
+
+
+    private int smallest(ArrayList<Integer> list){
+        if (list.isEmpty()) {
+            throw new IllegalArgumentException("List cannot be empty");
+        }
+
+        int smallest = Integer.MAX_VALUE;
+        int size = list.size();
+
+        for (int i = 0; i < size / 2; i++){
+            int j = size - 1 - i;
+            int a = list.get(i);
+            int b = list.get(j);
+            smallest = Math.min(smallest, Math.min(a, b));
+        }
+
+        return smallest;
+    }
+
     private int containTest(cPoint p){
         ArrayList<Shapus> Memory = dPanel.getMemory();
 
@@ -221,7 +400,7 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
                     y -= HOVER_DIAMETER / 2;
                     double diameter = val[2] + HOVER_DIAMETER;
                     ArrayList<Shapus> S = new ArrayList<>();
-                    S.add(new nCorners(x, y, diameter, val[3], SELECTED_PICKED, Entry.FILL_FALSE));
+                    S.add(new nCorners(shape.getCenter(), diameter, val[3], SELECTED_PICKED, Entry.FILL_FALSE));
                     dPanel.drawSelected(S);
                     break;
                 case Shapus.RECTANGLE:
@@ -297,30 +476,49 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
 
     @Override
     public void width(double width) {
-        if (!hasSelected) return;
-        for (int index : selectedIndexes){
-            dPanel.getMemory(index).setWidth(width);
+    	if (!hasSelected) return;
+        if (suppress[0]){
+            suppress[0] = false;
+            return;
         }
+    	ArrayList<Shapus> Memo = dPanel.getMemory();
+        for (int index : selectedIndexes){
+        	Memo.get(index).setWidth(width);
+        }
+        dPanel.clear();
+        dPanel.updateMemory(Memo);
         dPanel.clearHover();
         createSelectedOutline(selectedIndexes);
     }
 
     @Override
     public void height(double height) {
-        if (!hasSelected) return;
-        for (int index : selectedIndexes){
-            dPanel.getMemory(index).setHeight(height);
+    	if (!hasSelected) return;
+        if (suppress[1]){
+            suppress[1] = false;
+            return;
         }
-        dPanel.clearHover();
+    	ArrayList<Shapus> Memo = dPanel.getMemory();
+        for (int index : selectedIndexes){
+        	Memo.get(index).setHeight(height);
+        }
+        dPanel.clear();
+        dPanel.updateMemory(Memo);
         createSelectedOutline(selectedIndexes);
     }
 
     @Override
     public void corners(int corners) {
-        if (!hasSelected) return;
-        for (int index : selectedIndexes){
-            dPanel.getMemory(index).setHeight(corners);
+    	if (!hasSelected) return;
+        if (suppress[2]){
+            suppress[2] = false;
+            return;
         }
+    	ArrayList<Shapus> Memo = dPanel.getMemory();
+        for (int index : selectedIndexes){
+        	Memo.get(index).setCorner(corners);
+        }
+        dPanel.updateMemory(Memo);
         dPanel.clearHover();
         createSelectedOutline(selectedIndexes);
     }
@@ -328,6 +526,10 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
     @Override
     public void color(Color color) {
         if (!hasSelected) return;
+        if (suppress[3]){
+            suppress[3] = false;
+            return;
+        }
         for (int index : selectedIndexes){
             dPanel.getMemory(index).setColor(color);
         }
@@ -338,6 +540,10 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
     @Override
     public void fill(boolean fill) {
         if (!hasSelected) return;
+        if (suppress[4]){
+            suppress[4] = false;
+            return;
+        }
         for (int index : selectedIndexes){
             dPanel.getMemory(index).setFill(fill);
         }

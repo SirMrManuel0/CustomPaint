@@ -92,7 +92,7 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
 
         JLabel DropDownLabel = new JLabel("'Pinsel'");
         widthLabel = new JLabel("Durchmesser");
-        heightLabel = new JLabel("Höhe");
+        heightLabel = new JLabel("Hoehe");
         cornersLabel = new JLabel("Anzahl Ecken");
 
         heightLabel.setForeground(Color.gray);
@@ -210,7 +210,7 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
             }
         });
 
-        heightField.getDocument().addDocumentListener(new DocumentListener() {
+        cornerField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
                 changed();
@@ -461,7 +461,8 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
             int textWidth = Metrics.stringWidth(widthLabel.getText());
             int x = (120 * 1) + 50 - textWidth / 2;
             widthLabel.setBounds(x, 90, 100, 30);
-
+            deleteButton.setEnabled(false);
+            auswahlTool.clear();
         }
     }
 
@@ -502,7 +503,9 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
                     dPanel.drawRectangle(x,y,width,height,fill,color);
                     break;
                 case 4:
-                    auswahlTool.clicked(new cPoint(e.getX(),e.getY() - 148));
+                    cPoint p = new cPoint(e.getX(),e.getY() - 148);
+                    auswahlTool.clicked(p);
+                    auswahlTool.setDragStart(p);
                     break;
             }
         }
@@ -527,6 +530,9 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
                 dPanel.drawCircle(x, y, width, height, fill, color, Entry.BELONGING_END);
                 MovListener.setPinselStatus(false);
             }
+            if (DropDown.getSelectedIndex() == 4){
+                auswahlTool.release(new cPoint(e.getX(), e.getY() - 148));
+            }
         }
     }
 
@@ -542,6 +548,10 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
         public void mouseDragged(MouseEvent e){
             double x = e.getX();
             double y = e.getY() - 148;
+
+            if (auswahlStatus){
+                auswahlTool.drag(new cPoint(x,y));
+            }
 
             if (pinselStatus) {
                 x -= pinselWidth / 2;
