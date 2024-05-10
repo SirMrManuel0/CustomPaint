@@ -3,6 +3,7 @@ package gui.CustomComponents;
 import Sulfur.Entry;
 import Sulfur.SulfurManager;
 import gui.Shapes.*;
+import gui.Shapes.Geometry.cPoint;
 import gui.Shapes.Rectangle;
 
 import javax.imageio.ImageIO;
@@ -17,13 +18,18 @@ public class drawPanel extends JPanel {
     private ArrayList<Shapus> Memory;
     private ArrayList<Shapus> hoverShapus;
     private ArrayList<Shapus> selectedShapus;
+    private ArrayList<Shapus> UnsymmPoints;
     private ArrayList<ObsDPanel> Observer;
+    private boolean isDrawingUnsymm;
+    private unsymmNCorner Unsymm;
 
     public drawPanel(){
         Memory = new ArrayList<>();
         hoverShapus = new ArrayList<>();
         selectedShapus = new ArrayList<>();
         Observer = new ArrayList<>();
+        UnsymmPoints = new ArrayList<>();
+        isDrawingUnsymm = false;
     }
 
     public void drawRectangle(double x, double y, double width, double height, int fill, Color color){
@@ -63,6 +69,35 @@ public class drawPanel extends JPanel {
         if (width <= 0) width = 5;
         if (height <= 0) height = 5;
         Memory.add(new Ellipse(x, y, width, height, color, fill, bStatus));
+        repaint();
+    }
+
+    public void drawUnsymm(cPoint P, Color col, int fill){
+        if (!isDrawingUnsymm) {
+            Unsymm = new unsymmNCorner(col, fill);
+            UnsymmPoints = new ArrayList<>();
+            isDrawingUnsymm = true;
+        }
+        drawUnsymm(P);
+    }
+
+    public void drawUnsymm(cPoint P){
+        cPoint Start = Unsymm.getPoint(0);
+        if (Start != null && Start.vector(P).length() <= 10 && Unsymm.amountPoints() >= 3) {
+            Unsymm.wrap();
+            Memory.add(Unsymm);
+            UnsymmPoints = new ArrayList<>();
+            isDrawingUnsymm = false;
+            repaint();
+            return;
+        }
+        Color col = Unsymm.getColor();
+        col = new Color(col.getRed(), col.getGreen(), col.getBlue(), 50);
+        if (Unsymm.amountPoints() == 0)
+            col = new Color(86, 56, 130);
+        Shapus Rotating = new Ellipse(P.getX() - 10, P.getY() - 10, 20, 20, col, Entry.FILL_TRUE);
+        UnsymmPoints.add(Rotating);
+        Unsymm.addPoint(P);
         repaint();
     }
 
@@ -178,6 +213,7 @@ public class drawPanel extends JPanel {
     public void clearSelected() { selectedShapus = new ArrayList<>(); repaint();}
     public void addObs(ObsDPanel observ){ Observer.add(observ); }
     public void deleteMemory(int index) { Memory.remove(index); repaint(); }
+    public boolean isDrawingUnsymm() { return isDrawingUnsymm; }
 
     @Override
     public void paintComponent(Graphics g){
@@ -198,6 +234,12 @@ public class drawPanel extends JPanel {
             g2D.setColor(S.getColor());
             g2D.setStroke(new BasicStroke(5));
             g2D.draw(S.getShape());
+        }
+
+        for (Shapus S : UnsymmPoints){
+            g2D.setColor(S.getColor());
+            g2D.draw(S.getShape());
+            if (S.getFill()) g2D.fill(S.getShape());
         }
     }
 }

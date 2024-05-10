@@ -8,4 +8,5 @@ public interface ObsPaintMain {
     void corners(int corners);
     void color(Color color);
     void fill(boolean fill);
+    void switchAway();
 }

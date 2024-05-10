@@ -89,7 +89,7 @@ public class nCorners extends Shapus{
 
     @Override
     public boolean contains(Point mouseP) {
-        return contains(new cPoint(mouseP.x, mouseP.y - 148));
+        return contains(new cPoint(mouseP.x, mouseP.y - 165));
     }
 
     @Override

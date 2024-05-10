@@ -88,6 +88,18 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
                     dPanel.addAt(shape, addAt);
                 }
                 break;
+            case Shapus.UNSYMMETRICAL_N_CORNER:
+                ArrayList<cPoint> Points = element.getPoints();
+                Color elemCol_u = element.getColor();
+                Color col_u = new Color(elemCol_u.getRed(), elemCol_u.getGreen(), elemCol_u.getBlue(), 50);
+                unsymmNCorner unsymm = new unsymmNCorner(col_u, element.getFillStatus());
+                for (cPoint P : Points){
+                    P = moveEnd.movePoint(P);
+                    unsymm.addPoint(P);
+                }
+                unsymm.wrap();
+                dPanel.addAt(unsymm, selectedIndex+1);
+                break;
         }
     }
 
@@ -133,6 +145,18 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
                     dPanel.addAt(shape, minIndex);
                 }
                 break;
+            case Shapus.UNSYMMETRICAL_N_CORNER:
+                ArrayList<cPoint> Points = element.getPoints();
+                Color elemCol_u = element.getColor();
+                unsymmNCorner unsymm = new unsymmNCorner(elemCol_u, element.getFillStatus());
+                for (cPoint P : Points){
+                    P = moveEnd.movePoint(P);
+                    unsymm.addPoint(P);
+                }
+                unsymm.wrap();
+                dPanel.deleteMemory(selectedIndex);
+                dPanel.addAt(unsymm, selectedIndex);
+                break;
         }
         moveEnd = new Vector2D(0,0);
         dragStart = new cPoint(0,0);
@@ -144,6 +168,7 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
         setLocationPoint(locationPoint);
         int index = containTest(LocationPoint);
         if (index == -1) {
+            switchAway();
             hasSelected = false;
             selectedIndex = -1;
             selectedIndexes = new ArrayList<>();
@@ -156,6 +181,7 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
         ArrayList<Integer> selectedElements = new ArrayList<>();
         Shapus element = dPanel.getMemory(index);
         switch (element.getKind()) {
+            case Shapus.UNSYMMETRICAL_N_CORNER:
             case Shapus.CIRCLE:
             case Shapus.RECTANGLE:
             case Shapus.N_CORNER:
@@ -220,6 +246,14 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
             case Shapus.CIRCLE_WITH_B_STATUS:
                 dPanel.drawHover(CircleWithBStatus(hoverShapus, index));
                 break;
+            case Shapus.UNSYMMETRICAL_N_CORNER:
+                ArrayList<Shapus> list = new ArrayList<>();
+                Shapus shape = hoverShapus.increase(HOVER_DIAMETER);
+                shape.setColor(UNSELECTED_HOVER);
+                shape.setFill(false);
+                list.add(shape);
+                dPanel.drawHover(list);
+                break;
         }
     }
 
@@ -239,6 +273,7 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
             case Shapus.CIRCLE:
             case Shapus.RECTANGLE:
             case Shapus.N_CORNER:
+            case Shapus.UNSYMMETRICAL_N_CORNER:
                 dPanel.deleteMemory(selectedIndex+1);
                 break;
             case Shapus.CIRCLE_WITH_B_STATUS:
@@ -419,6 +454,14 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
                         S_circle.add(new Rectangle(x_circle, y_circle, width_circle, height_circle, SELECTED_PICKED, Entry.FILL_FALSE));
                     dPanel.drawSelected(S_circle);
                     break;
+                case Shapus.UNSYMMETRICAL_N_CORNER:
+                    ArrayList<Shapus> list = new ArrayList<>();
+                    Shapus shapeunsShape = shape.increase(HOVER_DIAMETER);
+                    shapeunsShape.setColor(SELECTED_PICKED);
+                    shapeunsShape.setFill(false);
+                    list.add(shapeunsShape);
+                    dPanel.drawSelected(list);
+                    break;
             }
         }
         else if (elem.size() > 1) {
@@ -483,7 +526,11 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
         }
     	ArrayList<Shapus> Memo = dPanel.getMemory();
         for (int index : selectedIndexes){
-        	Memo.get(index).setWidth(width);
+            if (dPanel.getMemory(index).getKind() == Shapus.UNSYMMETRICAL_N_CORNER){
+                Memo.get(index).scale(width);
+            } else {
+                Memo.get(index).setWidth(width);
+            }
         }
         dPanel.clear();
         dPanel.updateMemory(Memo);
@@ -549,5 +596,12 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
         }
         dPanel.clearHover();
         createSelectedOutline(selectedIndexes);
+    }
+
+    @Override
+    public void switchAway() {
+        if (!hasSelected) return;
+        if (dPanel.getMemory(selectedIndex).getKind() != Shapus.UNSYMMETRICAL_N_CORNER) return;
+        dPanel.getMemory(selectedIndex).setOriginalPoints(dPanel.getMemory(selectedIndex).getPoints());
     }
 }

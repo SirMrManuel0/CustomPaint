@@ -4,6 +4,7 @@ import Sulfur.Entry;
 import gui.CustomComponents.*;
 import gui.Shapes.Geometry.cPoint;
 import gui.Shapes.Shapus;
+import gui.Shapes.unsymmNCorner;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -102,7 +103,8 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
                 "Pinsel",
                 "Kreis",
                 "Rechteck",
-                "Auswahltool"
+                "Auswahltool",
+                "Viel Eck (unsymmetrisch)"
         };
 
         widthField = new JTextField("100");
@@ -384,6 +386,25 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
     @Override
     public void selected(Shapus selectedShapus) {
         int kind = selectedShapus.getKind();
+        if (kind == Shapus.UNSYMMETRICAL_N_CORNER) {
+            sliderHeight.setEnabled(false);
+            heightField.setEditable(false);
+            heightLabel.setForeground(Color.gray);
+
+            widthField.setText("0");
+            widthLabel.setText("delta Groeße");
+            sliderWidth.setMinimum(-100);
+            sliderWidth.setValue(0);
+            sliderWidth.setMaximum(100);
+            FontMetrics Metrics = widthLabel.getFontMetrics(widthLabel.getFont());
+            int textWidth = Metrics.stringWidth(widthLabel.getText());
+            int x = (120 * 1) + 50 - textWidth / 2;
+            widthLabel.setBounds(x, 90, 100, 30);
+            deleteButton.setEnabled(true);
+            colorChooser.setColor(selectedShapus.getColor());
+            colorShow.update(selectedShapus.getColor());
+            return;
+        }
         if (kind == Shapus.N_CORNER || kind == Shapus.CIRCLE_WITH_B_STATUS)
             helpFrame = new HelpFrame("Info", PaintMain.this);
         if (kind == Shapus.N_CORNER || kind == Shapus.CIRCLE_WITH_B_STATUS)
@@ -441,6 +462,11 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
         public void actionPerformed(ActionEvent e) {
             JComboBox<String> source = (JComboBox<String>) e.getSource();
             int index = source.getSelectedIndex();
+            for (ObsPaintMain Obs : Observer){
+                Obs.switchAway();
+            }
+            sliderWidth.setMinimum(5);
+            sliderWidth.setMaximum(getWidth());
             if (index <= 1) helpFrame = new HelpFrame("Info", PaintMain.this);
             if (index <= 1) helpFrame.switcher();
             if (index != 0){
@@ -470,9 +496,9 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
 
         @Override
         public void mousePressed(MouseEvent e) {
-            if (e.getY() < 148) return;
+            if (e.getY() < 180) return;
             int x = e.getX();
-            int y = e.getY() - 148;
+            int y = e.getY() - 165;
             double width = safeParse(widthField.getText(), 100);
             double height = safeParse(heightField.getText(), 100);
             int corners = safeParseInt(cornerField.getText(), 3);
@@ -503,17 +529,25 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
                     dPanel.drawRectangle(x,y,width,height,fill,color);
                     break;
                 case 4:
-                    cPoint p = new cPoint(e.getX(),e.getY() - 148);
+                    cPoint p = new cPoint(e.getX(),e.getY() - 165);
                     auswahlTool.clicked(p);
                     auswahlTool.setDragStart(p);
+                    break;
+                case 5:
+                    cPoint P = new cPoint(e.getX(), e.getY() - 165);
+                    if (!dPanel.isDrawingUnsymm()){
+                        dPanel.drawUnsymm(P, color, fill);
+                        break;
+                    }
+                    dPanel.drawUnsymm(P);
                     break;
             }
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            int y = e.getY() - 148;
-            if (y < 0) y = 148;
+            int y = e.getY() - 165;
+            if (y < 0) y = 180;
             int x = e.getX();
             double width = safeParse(widthField.getText(), 100);
             double height = safeParse(heightField.getText(), 100);
@@ -531,7 +565,7 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
                 MovListener.setPinselStatus(false);
             }
             if (DropDown.getSelectedIndex() == 4){
-                auswahlTool.release(new cPoint(e.getX(), e.getY() - 148));
+                auswahlTool.release(new cPoint(e.getX(), e.getY() - 165));
             }
         }
     }
@@ -547,7 +581,7 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
         @Override
         public void mouseDragged(MouseEvent e){
             double x = e.getX();
-            double y = e.getY() - 148;
+            double y = e.getY() - 165;
 
             if (auswahlStatus){
                 auswahlTool.drag(new cPoint(x,y));
@@ -562,7 +596,7 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
 
         @Override
         public void mouseMoved(MouseEvent e) {
-            if (auswahlStatus) auswahlTool.hover(new cPoint(e.getX(), e.getY() - 148));
+            if (auswahlStatus) auswahlTool.hover(new cPoint(e.getX(), e.getY() - 165));
         }
 
         public void pinsel(double width, double height, int fill, Color color) {
