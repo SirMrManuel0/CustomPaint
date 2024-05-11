@@ -601,6 +601,7 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
     @Override
     public void switchAway() {
         if (!hasSelected) return;
+        if (selectedIndex >= dPanel.getMemory().size() || selectedIndex < 0) return;
         if (dPanel.getMemory(selectedIndex).getKind() != Shapus.UNSYMMETRICAL_N_CORNER) return;
         dPanel.getMemory(selectedIndex).setOriginalPoints(dPanel.getMemory(selectedIndex).getPoints());
     }

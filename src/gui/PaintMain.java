@@ -4,22 +4,17 @@ import Sulfur.Entry;
 import gui.CustomComponents.*;
 import gui.Shapes.Geometry.cPoint;
 import gui.Shapes.Shapus;
-import gui.Shapes.unsymmNCorner;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javax.swing.border.*;
+import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 
 public class PaintMain extends CustomFrame implements ObsAuswahl {
+    public static final int HEADER_HEIGHT = 165;
 
-    private JPanel header;
     private drawPanel dPanel;
     private JComboBox<String> DropDown;
     private JTextField widthField;
@@ -27,9 +22,7 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
     private JTextField cornerField;
     private JCheckBox fillBox;
     private JColorChooser colorChooser;
-    private String[] drops;
     private JLabel cornersLabel;
-    private JButton helpButton;
     private JButton colorButton;
     private updaterPanel colorShow;
     private HelpFrame helpFrame;
@@ -37,9 +30,6 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
     private JSlider sliderWidth;
     private JLabel widthLabel;
     private JLabel heightLabel;
-    private JButton saveButton;
-    private JButton loadButton;
-    private JButton exportButton;
     private AuswahlTool auswahlTool;
     private MovementListener MovListener;
     private JButton deleteButton;
@@ -57,7 +47,7 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
     }
 
     private void initComponents(){
-        header = new JPanel();
+        JPanel header = new JPanel();
         dPanel = new drawPanel();
         auswahlTool = new AuswahlTool();
         deleteButton = new JButton("Löschen");
@@ -98,7 +88,7 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
 
         heightLabel.setForeground(Color.gray);
 
-        drops = new String[]{
+        String[] drops = new String[]{
                 "Viel Eck",
                 "Pinsel",
                 "Kreis",
@@ -113,14 +103,14 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
         fillBox = new JCheckBox("Ausfüllen");
         colorChooser = new JColorChooser();
         DropDown = new JComboBox<>(drops);
-        helpButton = new JButton("Info");
+        JButton helpButton = new JButton("Info");
         colorButton = new JButton("Farbe ändern");
         colorShow = new updaterPanel();
         sliderHeight = new JSlider(JSlider.HORIZONTAL, 5, dPanelHeight, 100);
         sliderWidth = new JSlider(JSlider.HORIZONTAL, 5, getWidth(), 100);
-        saveButton = new JButton("Sichern");
-        loadButton = new JButton("Laden");
-        exportButton = new JButton("Exportieren");
+        JButton saveButton = new JButton("Sichern");
+        JButton loadButton = new JButton("Laden");
+        JButton exportButton = new JButton("Exportieren");
         JButton undoButton = new JButton("Undo");
         JButton clearButton = new JButton("Leeren");
 
@@ -498,7 +488,7 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
         public void mousePressed(MouseEvent e) {
             if (e.getY() < 180) return;
             int x = e.getX();
-            int y = e.getY() - 165;
+            int y = e.getY() - PaintMain.HEADER_HEIGHT;
             double width = safeParse(widthField.getText(), 100);
             double height = safeParse(heightField.getText(), 100);
             int corners = safeParseInt(cornerField.getText(), 3);
@@ -529,12 +519,12 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
                     dPanel.drawRectangle(x,y,width,height,fill,color);
                     break;
                 case 4:
-                    cPoint p = new cPoint(e.getX(),e.getY() - 165);
+                    cPoint p = new cPoint(e.getX(),e.getY() - PaintMain.HEADER_HEIGHT);
                     auswahlTool.clicked(p);
                     auswahlTool.setDragStart(p);
                     break;
                 case 5:
-                    cPoint P = new cPoint(e.getX(), e.getY() - 165);
+                    cPoint P = new cPoint(e.getX(), e.getY() - PaintMain.HEADER_HEIGHT);
                     if (!dPanel.isDrawingUnsymm()){
                         dPanel.drawUnsymm(P, color, fill);
                         break;
@@ -546,7 +536,7 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            int y = e.getY() - 165;
+            int y = e.getY() - PaintMain.HEADER_HEIGHT;
             if (y < 0) y = 180;
             int x = e.getX();
             double width = safeParse(widthField.getText(), 100);
@@ -565,7 +555,7 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
                 MovListener.setPinselStatus(false);
             }
             if (DropDown.getSelectedIndex() == 4){
-                auswahlTool.release(new cPoint(e.getX(), e.getY() - 165));
+                auswahlTool.release(new cPoint(e.getX(), e.getY() - PaintMain.HEADER_HEIGHT));
             }
         }
     }
@@ -581,7 +571,7 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
         @Override
         public void mouseDragged(MouseEvent e){
             double x = e.getX();
-            double y = e.getY() - 165;
+            double y = e.getY() - PaintMain.HEADER_HEIGHT;
 
             if (auswahlStatus){
                 auswahlTool.drag(new cPoint(x,y));
@@ -596,7 +586,7 @@ public class PaintMain extends CustomFrame implements ObsAuswahl {
 
         @Override
         public void mouseMoved(MouseEvent e) {
-            if (auswahlStatus) auswahlTool.hover(new cPoint(e.getX(), e.getY() - 165));
+            if (auswahlStatus) auswahlTool.hover(new cPoint(e.getX(), e.getY() - PaintMain.HEADER_HEIGHT));
         }
 
         public void pinsel(double width, double height, int fill, Color color) {

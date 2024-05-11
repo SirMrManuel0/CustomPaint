@@ -1,5 +1,6 @@
 package gui.Shapes;
 
+import gui.PaintMain;
 import gui.Shapes.Geometry.*;
 
 import java.awt.*;
@@ -18,23 +19,15 @@ public class nCorners extends Shapus{
         };
         C = col;
         kind = Shapus.N_CORNER;
-        int corners = (int) c;
         Center = new cPoint(x+(diameter/2), y+(diameter/2));
-        calcPath(diameter, corners);
+        calcPath(diameter, (int) c);
         this.fill = fill;
-        val = new double[]{
-                x,
-                y,
-                diameter,
-                c
-        };
-
     }
 
     public nCorners(cPoint Center, double diameter, double c, Color col, int fill){
         val = new double[]{
-                0,
-                0,
+                Center.getX() - (diameter/2),
+                Center.getY() - (diameter/2),
                 diameter,
                 c
         };
@@ -44,7 +37,6 @@ public class nCorners extends Shapus{
         this.Center = Center;
         calcPath(diameter, corners);
         this.fill = fill;
-
     }
 
 
@@ -89,7 +81,7 @@ public class nCorners extends Shapus{
 
     @Override
     public boolean contains(Point mouseP) {
-        return contains(new cPoint(mouseP.x, mouseP.y - 165));
+        return contains(new cPoint(mouseP.x, mouseP.y - PaintMain.HEADER_HEIGHT));
     }
 
     @Override

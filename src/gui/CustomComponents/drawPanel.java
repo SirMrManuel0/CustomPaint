@@ -165,6 +165,15 @@ public class drawPanel extends JPanel {
             if (kind == Shapus.CIRCLE) Memory.add(new Ellipse(val[0], val[1], val[2], val[3], E.getColor(), E.getFill()));
             if (kind == Shapus.RECTANGLE) Memory.add(new Rectangle(val[0], val[1], val[2], val[3], E.getColor(), E.getFill()));
             if (kind == Shapus.CIRCLE_WITH_B_STATUS) Memory.add(new Ellipse(val[0], val[1], val[2], val[3], E.getColor(), E.getFill(), E.getBelongingStatus()));
+            if (kind == Shapus.UNSYMMETRICAL_N_CORNER){
+                unsymmNCorner U = new unsymmNCorner(E.getColor(), E.getFill());
+                if (val.length % 2 != 0) throw new IllegalStateException("The File has been corrupted! Data is missing!");
+                for (int i = 0; i < val.length; i+=2){
+                    U.addPoint(new cPoint(val[i], val[i+1]));
+                }
+                U.wrap();
+                Memory.add(U);
+            }
         }
         repaint();
     }

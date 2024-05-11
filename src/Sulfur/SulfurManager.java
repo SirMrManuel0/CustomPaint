@@ -140,6 +140,9 @@ public class SulfurManager {
 
 
     public int v1addData(int kind, double[] data, Color color, int fill, int belongingStatus){
+        if (color == null) throw new IllegalArgumentException("Color can not be null!");
+        if (data == null) throw new IllegalArgumentException("Data can not be null!");
+        if (data.length == 0) throw new IllegalArgumentException("Data can not be empty!");
         String[] old = readLines();
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             for(String str : old){

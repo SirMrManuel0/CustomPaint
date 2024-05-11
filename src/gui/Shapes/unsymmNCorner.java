@@ -1,5 +1,6 @@
 package gui.Shapes;
 
+import gui.PaintMain;
 import gui.Shapes.Geometry.*;
 
 import java.awt.*;
@@ -10,14 +11,6 @@ public class unsymmNCorner extends Shapus{
     private ArrayList<cPoint> Points;
     private ArrayList<cPoint> OrginalPoints;
     private GeneralPath Path;
-    public unsymmNCorner(cPoint start, Color col, int fill){
-        Points = new ArrayList<>();
-        Path = new GeneralPath();
-        Points.add(start);
-        this.C = col;
-        this.fill = fill;
-        this.kind = Shapus.UNSYMMETRICAL_N_CORNER;
-    }
 
     public unsymmNCorner(Color col, int fill){
         Points = new ArrayList<>();
@@ -34,10 +27,6 @@ public class unsymmNCorner extends Shapus{
         return Points.get(index);
     }
     public int amountPoints() { return Points.size(); }
-    public void wrap(cPoint last) {
-        Points.add(last);
-        wrap();
-    }
     public void wrap(){
         if (Points.size() <= 2){
             throw new IllegalStateException("Add at least three cPoints before wrapping!");
@@ -49,6 +38,19 @@ public class unsymmNCorner extends Shapus{
         Path.closePath();
         this.S = Path;
         OrginalPoints = Points;
+        updateVal();
+    }
+
+    private void updateVal(){
+        this.val = new double[Points.size()*2];
+        int index = 0;
+        for (int i = 0; i < Points.size(); i++){
+            cPoint P = Points.get(i);
+            val[index] = P.getX();
+            index++;
+            val[index] = P.getY();
+            index++;
+        }
     }
 
     @Override
@@ -97,6 +99,7 @@ public class unsymmNCorner extends Shapus{
         this.Path = Scaled.getPath();
         this.S = Scaled.getShape();
         this.Points = Scaled.getPoints();
+        updateVal();
     }
 
     @Override
@@ -168,7 +171,7 @@ public class unsymmNCorner extends Shapus{
 
     @Override
     public boolean contains(Point mouseP) {
-        return contains(new cPoint(mouseP.x, mouseP.y - 165));
+        return contains(new cPoint(mouseP.x, mouseP.y - PaintMain.HEADER_HEIGHT));
     }
 
     @Override

@@ -55,11 +55,11 @@ public class HelpFrame extends JFrame {
                 new JLabel(CustomFrame.scaleImageIcon(new ImageIcon(PathRetriever.getPath(PathRetriever.CENTER_CAL)), 200,50)),
                 new JLabel("Als nächstes berechnet man den Normalvector."),
                 new JLabel(CustomFrame.scaleImageIcon(new ImageIcon(PathRetriever.getPath(PathRetriever.NORMAL_VEC_CAL)), 100,50)),
-                new JLabel("Nun wird getest, ob man eine gerade Anzahl an Ecken hat, wenn ja wird"),
-                new JLabel("die erste VeKtor um einhalb θ nach links rotiert."),
+                new JLabel("Nun wird getestet, ob man eine gerade Anzahl an Ecken hat, wenn ja wird"),
+                new JLabel("die erste Vektor um einhalb θ nach links rotiert."),
                 new JLabel("Einen Vektor in Java zu verschieben erfordert nicht den Winkel, da"),
                 new JLabel("Math.sin() und Math.cos() nicht einen Winkel erwarten, sondern"),
-                new JLabel("das Bogenmaß, den der WInkel im Einheitskreis hat."),
+                new JLabel("das Bogenmaß, den der Winkel im Einheitskreis hat."),
                 new JLabel("Dies rechnet man so um:"),
                 new JLabel(CustomFrame.scaleImageIcon(new ImageIcon(PathRetriever.getPath(PathRetriever.RADIAN_CAL)), 150,50)),
                 new JLabel("Jetzt kann man den Vektor einfach rotieren:"),
@@ -105,10 +105,8 @@ public class HelpFrame extends JFrame {
 
         JLabel[] lines = new JLabel[]{
                 new JLabel("Die Grundform des Pinsels ist ein Kreis, d.h. es werden sehr viele Kreise gezeichnet."),
-                new JLabel("Dies wird durch einen Timer gemacht, der jede Millisekunde einen Kreis"),
-                new JLabel("an der Stelle der Maus zeichnet."),
-                new JLabel("Der Timer ist eine eingebaute standard Klasse von Java, die eine Zeit"),
-                new JLabel("in Milliseunden und einen ActionListener in ihren Konstruktor einnimmt.")
+                new JLabel("Dies wird durch ein MouseMotionAdapter gemacht."),
+                new JLabel("Immer wenn die Maus somit gedrückt und bewegt wird, wird ein neuer Kreis gemalt")
         };
 
         int[] imgIndexes = new int[]{
@@ -145,7 +143,7 @@ public class HelpFrame extends JFrame {
 
     private void cleanUp(){
         setSize(new Dimension(500, 600));
-        if (Memory.size() > 0){
+        if (!Memory.isEmpty()){
             for (Component com : Memory) remove(com);
             Memory = new ArrayList<>();
         }

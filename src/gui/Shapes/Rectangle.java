@@ -1,5 +1,6 @@
 package gui.Shapes;
 
+import gui.PaintMain;
 import gui.Shapes.Geometry.cPoint;
 
 import java.awt.*;
@@ -7,6 +8,10 @@ import java.awt.geom.Rectangle2D;
 
 public class Rectangle extends Shapus{
     public Rectangle(double x, double y, double width, double height, Color col, int fill){
+        setup(x, y, width, height, col, fill);
+    }
+
+    private void setup(double x, double y, double width, double height, Color col, int fill){
         val = new double[]{
                 x,
                 y,
@@ -29,47 +34,19 @@ public class Rectangle extends Shapus{
     public void setWidth(double width) {
     	if (width == val[2]) return;
         double x = val[0] - (width - val[2]) / 2;
-        double y = val[1];
-        double height = val[3];
-        S = new Rectangle2D.Double(x, y, width, height);
-        this.Corners = new cPoint[] {
-                new cPoint(x,y),
-                new cPoint(x+width,y),
-                new cPoint(x+width,y+height),
-                new cPoint(x,y+height)
-        };
-        val = new double[]{
-                x,
-                y,
-                width,
-                height
-        };
+        setup(x, val[1], width, val[3], this.C, this.fill);
     }
 
     @Override
     public void setHeight(double height) {
     	if (height == val[3]) return;
-        double x = val[0];
         double y = val[1] - (height - val[3]) / 2;
-        double width = val[2];
-        S = new Rectangle2D.Double(x, y, width, height);
-        this.Corners = new cPoint[] {
-                new cPoint(x,y),
-                new cPoint(x+width,y),
-                new cPoint(x+width,y+height),
-                new cPoint(x,y+height)
-        };
-        val = new double[]{
-                x,
-                y,
-                width,
-                height
-        };
+        setup(val[0], y, val[2], height, this.C, this.fill);
     }
 
     @Override
     public boolean contains(Point mouseP) {
-        return contains(new cPoint(mouseP.x, mouseP.y - 165));
+        return contains(new cPoint(mouseP.x, mouseP.y - PaintMain.HEADER_HEIGHT));
     }
 
     @Override
@@ -82,11 +59,9 @@ public class Rectangle extends Shapus{
         double x = point.getX();
         double y = point.getY();
 
-        if (y > D.getY()) return false;
-        if (x > C.getX()) return false;
-        if (x < A.getX()) return false;
-        if (y < B.getY()) return false;
-
-        return true;
+        return !(y > D.getY())
+                && !(x > C.getX())
+                && !(x < A.getX())
+                && !(y < B.getY());
     }
 }
