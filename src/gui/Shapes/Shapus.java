@@ -51,4 +51,6 @@ public class Shapus {
     public void scale(double scale){}
     public GeneralPath getPath(){ return null;}
     public void setOriginalPoints(ArrayList<cPoint> Points){}
+    public void addEllipse(Ellipse el){}
+    public ShapArea getArea(){ return null; }
 }

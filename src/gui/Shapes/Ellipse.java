@@ -1,5 +1,6 @@
 package gui.Shapes;
 
+import Sulfur.Entry;
 import gui.PaintMain;
 import gui.Shapes.Geometry.cPoint;
 
@@ -7,6 +8,7 @@ import java.awt.*;
 import java.awt.geom.Ellipse2D;
 
 public class Ellipse extends Shapus{
+    private ShapArea area;
     public Ellipse(double x, double y, double width, double height, Color col, int fill){
         this.kind = Shapus.CIRCLE;
         setup(x, y, width, height, col, fill);
@@ -15,6 +17,7 @@ public class Ellipse extends Shapus{
         this.kind = Shapus.CIRCLE_WITH_B_STATUS;
         this.bStatus = bStatus;
         setup(x, y, width, height, col, fill);
+        if (bStatus == Entry.BELONGING_START) area = new ShapArea(this);
     }
 
     private void setup(double x, double y, double width, double height, Color col, int fill){
@@ -64,5 +67,16 @@ public class Ellipse extends Shapus{
         double answer = ((x - h) * (x - h))/(semiMajor * semiMajor)
                 + ((y - k) * (y - k))/(semiMinor * semiMinor);
         return answer <= 1;
+    }
+
+    @Override
+    public void addEllipse(Ellipse el){
+        if (area == null) throw new IllegalStateException("Only the first Ellipse can add other Ellipses!");
+        area.add(el);
+    }
+
+    @Override
+    public ShapArea getArea(){
+        return area;
     }
 }

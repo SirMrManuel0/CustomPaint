@@ -73,20 +73,13 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
                 break;
             case Shapus.CIRCLE_WITH_B_STATUS:
                 ArrayList<Integer> intShapes = selectAllBStatus(element, selectedIndex, false);
-                ArrayList<Shapus> shapusShapes = selectAllBStatus(element, selectedIndex,true);
-                shapusShapes = reverseShapus(shapusShapes);
                 int addAt = largest(intShapes) + 1;
-                for (Shapus s : shapusShapes){
-                    double[] values = s.getVal();
-                    cPoint loc_b = new cPoint(values[0], values[1]);
-                    double x_b = moveEnd.movePoint(loc_b).getX();
-                    double y_b = moveEnd.movePoint(loc_b).getY();
-                    Color elemCol_b = s.getColor();
-                    Color col_b = new Color(elemCol_b.getRed(), elemCol_b.getGreen(), elemCol_b.getBlue(), 50);
-                    int bStatus = s.getbStatus();
-                    Shapus shape = new Ellipse(x_b, y_b, values[2], values[3], col_b, element.getFillStatus(), bStatus);
-                    dPanel.addAt(shape, addAt);
-                }
+                int start = smallest(intShapes);
+                ShapArea area = dPanel.getMemory(start).getArea();
+                Color c = area.getColor();
+                area.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 50));
+                area.move(move);
+                dPanel.addAt(area, addAt);
                 break;
             case Shapus.UNSYMMETRICAL_N_CORNER:
                 ArrayList<cPoint> Points = element.getPoints();
@@ -134,16 +127,29 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
                 for (int i : intShapes){
                     dPanel.deleteMemory(minIndex);
                 }
-                for (Shapus s : shapusShapes){
+
+                Shapus Shap = shapusShapes.get(shapusShapes.size()-1);
+                double[] args = Shap.getVal();
+                cPoint loc_start = new cPoint(args[0], args[1]);
+                double x_start = moveEnd.movePoint(loc_start).getX();
+                double y_start = moveEnd.movePoint(loc_start).getY();
+                Color elemCol_start = Shap.getColor();
+                Shapus Start = new Ellipse(x_start, y_start, args[2], args[3], elemCol_start, element.getFillStatus(), Entry.BELONGING_START);
+
+                for (int i = 0; i < shapusShapes.size()-1; i++){
+                    Shapus s = shapusShapes.get(i);
                     double[] values = s.getVal();
                     cPoint loc_b = new cPoint(values[0], values[1]);
                     double x_b = moveEnd.movePoint(loc_b).getX();
                     double y_b = moveEnd.movePoint(loc_b).getY();
                     Color elemCol_b = s.getColor();
                     int bStatus = s.getbStatus();
-                    Shapus shape = new Ellipse(x_b, y_b, values[2], values[3], elemCol_b, element.getFillStatus(), bStatus);
-                    dPanel.addAt(shape, minIndex);
+                    Ellipse el = new Ellipse(x_b, y_b, values[2], values[3], elemCol_b, element.getFillStatus(), bStatus);
+                    dPanel.addAt((Shapus) el, minIndex);
+                    Start.addEllipse(el);
                 }
+
+                dPanel.addAt(Start, minIndex);
                 break;
             case Shapus.UNSYMMETRICAL_N_CORNER:
                 ArrayList<cPoint> Points = element.getPoints();
@@ -280,11 +286,7 @@ public class AuswahlTool implements ObsDPanel, ActionListener, ObsPaintMain {
                 ArrayList<Integer> indexes = selectAllBStatus(element, selectedIndex, false);
                 int after = largest(indexes) + 1;
                 if (after < 0) throw new IllegalArgumentException("Nothing has benn dragged yet!");
-                ArrayList<Integer> transPIndexes = selectAllBStatus(dPanel.getMemory(after), after, false);
-                int sm = smallest(transPIndexes);
-                for (int i : transPIndexes){
-                    dPanel.deleteMemory(sm);
-                }
+                dPanel.deleteMemory(after);
                 break;
         }
     }

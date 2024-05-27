@@ -68,7 +68,16 @@ public class drawPanel extends JPanel {
         if (y < 0) y = 0;
         if (width <= 0) width = 5;
         if (height <= 0) height = 5;
-        Memory.add(new Ellipse(x, y, width, height, color, fill, bStatus));
+        Ellipse E = new Ellipse(x, y, width, height, color, fill, bStatus);
+        Memory.add(E);
+        if (bStatus != Entry.BELONGING_START){
+            for (int i = Memory.size() - 1; i >= 0; i--){
+                if (Memory.get(i).getbStatus() == Entry.BELONGING_START){
+                    Memory.get(i).addEllipse(E);
+                    break;
+                }
+            }
+        }
         repaint();
     }
 
